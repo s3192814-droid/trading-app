@@ -8,7 +8,7 @@
   
   <!-- PyScript -->
   <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/pyscript.css" />
-  <script type="module" src="https://pyscript.net/releases/2024.1.1/pyscript.js"></script>
+  <script defer type="module" src="https://pyscript.net/releases/2024.1.1/pyscript.js"></script>
   
   <!-- Telegram WebApp -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -211,14 +211,19 @@
       --text-secondary: var(--tg-theme-hint-color, #aeaeb2);
       --accent: var(--tg-theme-button-color, #007aff);
     }
+
+    /* Скрываем Python код до загрузки */
+    py-script {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="card">
     <!-- Переключатель языков -->
     <div class="language-switcher">
-      <button class="lang-btn active" id="langRu" onclick="setLanguage('ru')">🇷🇺 RU</button>
-      <button class="lang-btn" id="langEn" onclick="setLanguage('en')">🇬🇧 EN</button>
+      <button class="lang-btn active" id="langRu">🇷🇺 RU</button>
+      <button class="lang-btn" id="langEn">🇬🇧 EN</button>
     </div>
 
     <h1 id="title">🎯 Торговый сигнал</h1>
@@ -226,17 +231,17 @@
     
     <!-- Выбор экспирации -->
     <select id="expiration" class="expiration-select">
-      <option value="5" data-ru="⏱️ 5 секунд" data-en="⏱️ 5 seconds">⏱️ 5 секунд</option>
-      <option value="15" data-ru="⏱️ 15 секунд" data-en="⏱️ 15 seconds">⏱️ 15 секунд</option>
-      <option value="60" data-ru="⏱️ 1 минута" data-en="⏱️ 1 minute">⏱️ 1 минута</option>
-      <option value="300" data-ru="⏱️ 5 минут" data-en="⏱️ 5 minutes">⏱️ 5 минут</option>
-      <option value="900" data-ru="⏱️ 15 минут" data-en="⏱️ 15 minutes">⏱️ 15 минут</option>
-      <option value="1800" data-ru="⏱️ 30 минут" data-en="⏱️ 30 minutes">⏱️ 30 минут</option>
-      <option value="3600" data-ru="⏱️ 1 час" data-en="⏱️ 1 hour">⏱️ 1 час</option>
+      <option value="5">⏱️ 5 секунд</option>
+      <option value="15">⏱️ 15 секунд</option>
+      <option value="60">⏱️ 1 минута</option>
+      <option value="300">⏱️ 5 минут</option>
+      <option value="900">⏱️ 15 минут</option>
+      <option value="1800">⏱️ 30 минут</option>
+      <option value="3600">⏱️ 1 час</option>
     </select>
 
     <!-- Кнопка -->
-    <button id="getSignal" class="btn-primary" onclick="generate_signal()">
+    <button id="getSignal" class="btn-primary">
       📊 Получить сигнал
     </button>
 
@@ -427,29 +432,24 @@ async def generate_signal(*args):
 
 def set_language(lang):
     update_ui_language(lang)
+
+# Инициализация кнопок
+from pyodide.ffi import create_proxy
+document.getElementById("getSignal").addEventListener("click", create_proxy(generate_signal))
+document.getElementById("langRu").addEventListener("click", create_proxy(lambda e: set_language('ru')))
+document.getElementById("langEn").addEventListener("click", create_proxy(lambda e: set_language('en')))
+
+# Загрузка сохраненного языка
+current_lang = get_current_language()
+update_ui_language(current_lang)
   </py-script>
 
   <script>
+    // Инициализация Telegram WebApp
     const tg = window.Telegram.WebApp;
     tg.expand();
     
-    let currentLang = localStorage.getItem('app_language') || 'ru';
-    
-    if (!localStorage.getItem('app_language') && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-      const userLang = tg.initDataUnsafe.user.language_code;
-      if (userLang === 'en' || userLang === 'ru') {
-        currentLang = userLang;
-      }
-    }
-    
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        if (typeof pyscript !== 'undefined') {
-          pyscript.interpreter.globals.get('set_language')(currentLang);
-        }
-      }, 500);
-    });
-    
+    // Адаптация под тему Telegram
     if (tg.colorScheme === 'dark') {
       document.body.setAttribute('data-theme', 'telegram');
     }
