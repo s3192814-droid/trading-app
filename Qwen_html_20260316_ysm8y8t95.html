@@ -2,463 +2,187 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#1c1c1e">
-  <title>📊 Trading Signal</title>
-  
-  <!-- PyScript -->
-  <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/pyscript.css" />
-  <script type="module" src="https://pyscript.net/releases/2024.1.1/pyscript.js"></script>
-  
-  <!-- Telegram WebApp -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  
+  <title>Trading Signals</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    :root {
-      --bg-primary: #1c1c1e;
-      --bg-secondary: #2c2c2e;
-      --text-primary: #ffffff;
-      --text-secondary: #aeaeb2;
-      --accent: #007aff;
-      --success: #00c853;
-      --danger: #ff1744;
-      --border-radius: 16px;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg-primary);
-      color: var(--text-primary);
+      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      color: #e5e7eb;
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 20px;
-      -webkit-font-smoothing: antialiased;
     }
 
-    .card {
-      background: var(--bg-secondary);
-      border-radius: var(--border-radius);
-      padding: 24px;
+    .container {
+      max-width: 900px;
       width: 100%;
-      max-width: 400px;
-      text-align: center;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+      padding: 28px 24px 26px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 24px;
     }
 
-    .language-switcher {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-
-    .lang-btn {
-      padding: 8px 16px;
-      background: var(--bg-primary);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px;
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .lang-btn.active {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
-
-    .lang-btn:hover:not(.active) {
-      background: rgba(255,255,255,0.05);
-    }
-
-    h1 { font-size: 1.5rem; margin-bottom: 8px; }
-    .subtitle { color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem; }
-
-    .btn-primary {
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, var(--accent), #0051cc);
-      border: none;
-      border-radius: 12px;
-      color: white;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s;
-      margin-bottom: 12px;
-    }
-
-    .btn-primary:active { transform: scale(0.98); }
-    .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
-
-    .expiration-select {
-      width: 100%;
-      padding: 12px;
-      background: var(--bg-primary);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px;
-      color: var(--text-primary);
-      font-size: 1rem;
-      margin-bottom: 20px;
-      outline: none;
-    }
-
-    .expiration-select:focus {
-      border-color: var(--accent);
-    }
-
-    .result-box {
-      margin-top: 20px;
-      padding: 20px;
-      background: linear-gradient(135deg, rgba(0,200,83,0.1), rgba(0,122,255,0.1));
-      border-radius: 12px;
-      display: none;
-      animation: slideUp 0.4s ease-out;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .signal-emoji {
-      font-size: 3rem;
-      animation: bounce 0.6s ease-out;
-    }
-
-    @keyframes bounce {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-    }
-
-    .signal-type { 
-      font-size: 2rem; 
-      font-weight: 700; 
-      margin: 10px 0;
-      text-transform: uppercase;
-    }
-    .signal-type.buy { color: var(--success); }
-    .signal-type.sell { color: var(--danger); }
-
-    .signal-info {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      font-size: 0.95rem;
-    }
-
-    .signal-info:last-child { border-bottom: none; }
-
-    .confidence-bar {
-      width: 100px;
-      height: 8px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 4px;
-      overflow: hidden;
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-
-    .confidence-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--success));
-      border-radius: 4px;
-      transition: width 0.5s ease-out;
-    }
-
-    .loading {
-      display: none;
-      margin-top: 20px;
-      color: var(--text-secondary);
-    }
-
-    .spinner {
-      width: 30px;
-      height: 30px;
-      border: 3px solid rgba(255,255,255,0.1);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 10px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .footer {
-      margin-top: 24px;
-      color: var(--text-secondary);
-      font-size: 0.8rem;
-      text-align: center;
-    }
-
-    body[data-theme="telegram"] {
-      --bg-primary: var(--tg-theme-bg-color, #1c1c1e);
-      --bg-secondary: var(--tg-theme-secondary-bg-color, #2c2c2e);
-      --text-primary: var(--tg-theme-text-color, #ffffff);
-      --text-secondary: var(--tg-theme-hint-color, #aeaeb2);
-      --accent: var(--tg-theme-button-color, #007aff);
-    }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <!-- Переключатель языков -->
-    <div class="language-switcher">
-      <button class="lang-btn active" id="langRu" onclick="setLanguage('ru')">🇷🇺 RU</button>
-      <button class="lang-btn" id="langEn" onclick="setLanguage('en')">🇬🇧 EN</button>
-    </div>
-
-    <h1 id="title">🎯 Торговый сигнал</h1>
-    <p class="subtitle" id="subtitle">Выберите экспирацию и получите сигнал</p>
-    
-    <!-- Выбор экспирации -->
-    <select id="expiration" class="expiration-select">
-      <option value="5" data-ru="⏱️ 5 секунд" data-en="⏱️ 5 seconds">⏱️ 5 секунд</option>
-      <option value="15" data-ru="⏱️ 15 секунд" data-en="⏱️ 15 seconds">⏱️ 15 секунд</option>
-      <option value="60" data-ru="⏱️ 1 минута" data-en="⏱️ 1 minute">⏱️ 1 минута</option>
-      <option value="300" data-ru="⏱️ 5 минут" data-en="⏱️ 5 minutes">⏱️ 5 минут</option>
-      <option value="900" data-ru="⏱️ 15 минут" data-en="⏱️ 15 minutes">⏱️ 15 минут</option>
-      <option value="1800" data-ru="⏱️ 30 минут" data-en="⏱️ 30 minutes">⏱️ 30 минут</option>
-      <option value="3600" data-ru="⏱️ 1 час" data-en="⏱️ 1 hour">⏱️ 1 час</option>
-    </select>
-
-    <!-- Кнопка -->
-    <button id="getSignal" class="btn-primary" onclick="generate_signal()">
-      📊 Получить сигнал
-    </button>
-
-    <!-- Загрузка -->
-    <div id="loading" class="loading">
-      <div class="spinner"></div>
-      <p id="loadingText">Анализируем рынок...</p>
-    </div>
-
-    <!-- Результат -->
-    <div id="result" class="result-box">
-      <div class="signal-emoji" id="signalEmoji">🟢</div>
-      <div class="signal-type" id="signalType">BUY</div>
-      
-      <div class="signal-info">
-        <span id="labelPair">📈 Пара:</span>
-        <strong id="signalPair">BTC/USDT</strong>
-      </div>
-      
-      <div class="signal-info">
-        <span id="labelExpiration">⏱️ Экспирация:</span>
-        <strong id="signalExpiration">5 мин</strong>
-      </div>
-      
-      <div class="signal-info">
-        <span id="labelChance">🎯 Шанс:</span>
-        <div>
-          <div class="confidence-bar">
-            <div class="confidence-fill" id="confidenceFill" style="width: 85%"></div>
-          </div>
-          <strong id="signalConfidence">85%</strong>
-        </div>
-      </div>
-    </div>
-
-    <div class="footer" id="footer">
-      ⚠️ Не является финансовой рекомендацией
-    </div>
-  </div>
-
-  <!-- Python код -->
-  <py-script>
-import random
-import asyncio
-from js import document, window, localStorage
-
-TRADING_PAIRS = [
-    'EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF',
-    'AUD/USD', 'USD/CAD', 'NZD/USD', 'EUR/GBP',
-    'EUR/JPY', 'GBP/JPY', 'EUR/CHF', 'EUR/AUD',
-    'GBP/CHF', 'GBP/AUD', 'AUD/JPY', 'CHF/JPY',
-    'NZD/JPY', 'CAD/JPY', 'AUD/CAD', 'AUD/CHF',
-    'AUD/NZD', 'CAD/CHF', 'EUR/CAD', 'EUR/NZD',
-    'GBP/CAD', 'GBP/NZD', 'NZD/CAD', 'NZD/CHF',
-    'BTC/USDT', 'ETH/USDT', 'XRP/USDT', 'LTC/USDT',
-    'BCH/USDT', 'ADA/USDT', 'DOT/USDT', 'LINK/USDT',
-    'BNB/USDT', 'SOL/USDT', 'DOGE/USDT', 'MATIC/USDT',
-    'AVAX/USDT', 'ATOM/USDT', 'UNI/USDT', 'TON/USDT'
-]
-
-SIGNAL_TYPES = [
-    {'type': 'BUY', 'emoji': '🟢', 'color': '#00c853'},
-    {'type': 'SELL', 'emoji': '🔴', 'color': '#ff1744'}
-]
-
-SIGNAL_WEIGHTS = [0.50, 0.50]
-
-TRANSLATIONS = {
-    'ru': {
-        'title': '🎯 Торговый сигнал',
-        'subtitle': 'Выберите экспирацию и получите сигнал',
-        'button': '📊 Получить сигнал',
-        'loading': 'Анализируем рынок...',
-        'labelPair': '📈 Пара:',
-        'labelExpiration': '⏱️ Экспирация:',
-        'labelChance': '🎯 Шанс:',
-        'footer': '⚠️ Не является финансовой рекомендацией',
-        'sec': 'сек',
-        'min': 'мин',
-        'hour': 'ч'
-    },
-    'en': {
-        'title': '🎯 Trading Signal',
-        'subtitle': 'Select expiration and get a signal',
-        'button': '📊 Get Signal',
-        'loading': 'Analyzing market...',
-        'labelPair': '📈 Pair:',
-        'labelExpiration': '⏱️ Expiration:',
-        'labelChance': '🎯 Chance:',
-        'footer': '⚠️ Not financial advice',
-        'sec': 'sec',
-        'min': 'min',
-        'hour': 'hr'
-    }
-}
-
-def get_current_language():
-    try:
-        lang = localStorage.getItem('app_language')
-        if lang:
-            return lang
-        tg = window.Telegram.WebApp
-        if tg and tg.initDataUnsafe and tg.initDataUnsafe.user:
-            user_lang = tg.initDataUnsafe.user.language_code
-            if user_lang in ['ru', 'en']:
-                return user_lang
-    except:
-        pass
-    return 'ru'
-
-def format_expiration(seconds, lang):
-    t = TRANSLATIONS[lang]
-    if seconds < 60:
-        return f"{seconds} {t['sec']}"
-    elif seconds < 3600:
-        minutes = seconds // 60
-        return f"{minutes} {t['min']}"
-    else:
-        hours = seconds // 3600
-        mins = (seconds % 3600) // 60
-        if mins > 0:
-            return f"{hours} {t['hour']} {mins} {t['min']}"
-        return f"{hours} {t['hour']}"
-
-def update_ui_language(lang):
-    t = TRANSLATIONS[lang]
-    
-    document.getElementById("title").textContent = t['title']
-    document.getElementById("subtitle").textContent = t['subtitle']
-    document.getElementById("getSignal").innerHTML = t['button']
-    document.getElementById("loadingText").textContent = t['loading']
-    document.getElementById("labelPair").textContent = t['labelPair']
-    document.getElementById("labelExpiration").textContent = t['labelExpiration']
-    document.getElementById("labelChance").textContent = t['labelChance']
-    document.getElementById("footer").textContent = t['footer']
-    
-    select = document.getElementById("expiration")
-    for option in select.options:
-        option.text = option.getAttribute(f'data-{lang}')
-    
-    document.getElementById("langRu").classList.remove("active")
-    document.getElementById("langEn").classList.remove("active")
-    document.getElementById(f"lang{lang.capitalize()}").classList.add("active")
-    
-    localStorage.setItem('app_language', lang)
-
-def generate_confidence():
-    return random.randint(75, 99)
-
-async def generate_signal(*args):
-    lang = get_current_language()
-    
-    btn = document.getElementById("getSignal")
-    loading = document.getElementById("loading")
-    result = document.getElementById("result")
-    expiration_select = document.getElementById("expiration")
-    
-    btn.disabled = True
-    btn.innerHTML = "⏳ ..."
-    result.style.display = "none"
-    loading.style.display = "block"
-    
-    await asyncio.sleep(1.5)
-    
-    exp_seconds = int(expiration_select.value)
-    exp_text = format_expiration(exp_seconds, lang)
-    
-    signal_data = random.choices(SIGNAL_TYPES, weights=SIGNAL_WEIGHTS, k=1)[0]
-    pair = random.choice(TRADING_PAIRS)
-    confidence = generate_confidence()
-    
-    document.getElementById("signalEmoji").textContent = signal_data['emoji']
-    document.getElementById("signalType").textContent = signal_data['type']
-    document.getElementById("signalType").className = f"signal-type {signal_data['type'].lower()}"
-    document.getElementById("signalPair").textContent = pair
-    document.getElementById("signalExpiration").textContent = exp_text
-    document.getElementById("signalConfidence").textContent = f"{confidence}%"
-    document.getElementById("confidenceFill").style.width = f"{confidence}%"
-    
-    loading.style.display = "none"
-    result.style.display = "block"
-    btn.disabled = False
-    btn.innerHTML = TRANSLATIONS[lang]['button']
-    
-    tg = window.Telegram.WebApp
-    if tg.HapticFeedback:
-        tg.HapticFeedback.notificationOccurred("success")
-
-def set_language(lang):
-    update_ui_language(lang)
-  </py-script>
-
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    
-    let currentLang = localStorage.getItem('app_language') || 'ru';
-    
-    if (!localStorage.getItem('app_language') && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-      const userLang = tg.initDataUnsafe.user.language_code;
-      if (userLang === 'en' || userLang === 'ru') {
-        currentLang = userLang;
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
       }
     }
-    
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        if (typeof pyscript !== 'undefined') {
-          pyscript.interpreter.globals.get('set_language')(currentLang);
-        }
-      }, 500);
-    });
-    
-    if (tg.colorScheme === 'dark') {
-      document.body.setAttribute('data-theme', 'telegram');
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.1);
+      color: #bbf7d0;
+      font-size: 12px;
+      margin-bottom: 14px;
     }
-    
-    document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#1c1c1e');
-    document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#2c2c2e');
-    document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#ffffff');
-    document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#aeaeb2');
-    document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#007aff');
-  </script>
-</body>
-</html>
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+    }
+
+    h1 {
+      font-size: 28px;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+
+    h1 span {
+      color: #22c55e;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #9ca3af;
+      margin-bottom: 18px;
+    }
+
+    .list {
+      list-style: none;
+      margin-bottom: 20px;
+    }
+
+    .list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13px;
+      color: #d1d5db;
+      margin-bottom: 6px;
+    }
+
+    .list li::before {
+      content: "•";
+      color: #22c55e;
+      margin-top: 1px;
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .input {
+      flex: 1;
+      min-width: 0;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    .input::placeholder {
+      color: #6b7280;
+    }
+
+    .input:focus {
+      border-color: #22c55e;
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.4);
+      background: rgba(15, 23, 42, 1);
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #022c22;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 12px 30px rgba(34, 197, 94, 0.35);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 40px rgba(34, 197, 94, 0.45);
+      filter: brightness(1.05);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+      filter: brightness(0.97);
+    }
+
+    .btn:disabled {
+      opacity: 0.7;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-icon {
+      font-size: 16px;
+    }
+
+    .note {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .note span {
+      color: #22c55e;
+    }
+
+    /* Правая часть — блок сигнала */
+
+    .signal-card
